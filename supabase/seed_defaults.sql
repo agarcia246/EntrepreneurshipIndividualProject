@@ -1,0 +1,13 @@
+-- ============================================================
+-- Optional: Insert default habits for a user after onboarding.
+-- Call this from the client or use it as a reference.
+-- Replace :user_id with the actual auth.uid().
+-- ============================================================
+
+-- insert into public.habits (user_id, label, icon, target, unit, sort_order) values
+--   (:user_id, '8 glasses of water', 'droplets',  8,    'glasses',  0),
+--   (:user_id, '7+ hours sleep',     'moon',      7,    'hours',    1),
+--   (:user_id, 'Protein target',     'beef',      120,  'grams',    2),
+--   (:user_id, 'Steps goal',         'trending-up', 8000, 'steps',  3),
+--   (:user_id, 'No junk food',       'cookie',    1,    'day',      4),
+--   (:user_id, 'Gym session',        'dumbbell',  1,    'session',  5);

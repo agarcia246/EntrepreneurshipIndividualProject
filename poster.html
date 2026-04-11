@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&amp;family=Source+Sans+3:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            forest: '#1a3a2a',
+            forestLight: '#2d5a3f',
+            charcoal: '#1e1e1e',
+            charcoalMid: '#2a2a2a',
+            slate: '#e8ebe9',
+            accent: '#4a7c8a',
+            accentLight: '#5a9cae',
+            cream: '#f4f6f3',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .font-display { font-family: 'Playfair Display', Georgia, serif; }
+    .font-body { font-family: 'Source Sans 3', 'Segoe UI', sans-serif; }
+
+    .poster-wrap {
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background: #1e1e1e;
+    }
+
+    .poster-inner {
+      min-width: 1200px;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 28px 32px;
+    }
+
+    .section-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 20px 22px;
+    }
+
+    .attempt-card {
+      background: rgba(26,58,42,0.25);
+      border: 1px solid rgba(74,124,138,0.2);
+      border-radius: 10px;
+      padding: 20px 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .attempt-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #4a7c8a, #2d5a3f);
+    }
+
+    .sub-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #5a9cae;
+      margin-bottom: 4px;
+    }
+
+    .trait-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(74,124,138,0.15);
+      border: 1px solid rgba(74,124,138,0.3);
+      color: #b0d4dc;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .timeline-line {
+      height: 2px;
+      background: linear-gradient(90deg, #4a7c8a 0%, #2d5a3f 50%, #5a9cae 100%);
+      flex: 1;
+    }
+
+    .timeline-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #4a7c8a;
+      border: 2px solid #5a9cae;
+      flex-shrink: 0;
+    }
+
+    .timeline-dot.active {
+      background: #5a9cae;
+      box-shadow: 0 0 8px rgba(90,156,174,0.4);
+    }
+
+    .feeling-box {
+      background: rgba(74,124,138,0.1);
+      border-left: 3px solid #4a7c8a;
+      padding: 8px 12px;
+      border-radius: 0 6px 6px 0;
+      margin-top: 10px;
+    }
+
+    .learned-box {
+      background: rgba(45,90,63,0.2);
+      border-left: 3px solid #2d5a3f;
+      padding: 8px 12px;
+      border-radius: 0 6px 6px 0;
+      margin-top: 8px;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-up {
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .fade-up-1 { animation-delay: 0.1s; }
+    .fade-up-2 { animation-delay: 0.2s; }
+    .fade-up-3 { animation-delay: 0.3s; }
+    .fade-up-4 { animation-delay: 0.4s; }
+    .fade-up-5 { animation-delay: 0.5s; }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full">
+  <div class="poster-wrap">
+   <div class="poster-inner font-body text-gray-200"><!-- HEADER -->
+    <header class="fade-up fade-up-1 mb-5">
+     <div class="flex items-start justify-between gap-6">
+      <div class="flex-1">
+       <p class="sub-label mb-2" style="color:#5a9cae; font-size:10px; letter-spacing:0.12em;">Entrepreneurial Mindset Challenge — Academic Poster</p>
+       <h1 id="poster-title" class="font-display text-white leading-tight" style="font-size: 28px; font-weight: 700;">Building Less, Listening More: Three Attempts to Test a Student Fitness and Healthy-Eating Planner</h1>
+       <div class="flex items-center gap-3 mt-3"><span id="student-name" class="text-gray-300 font-medium" style="font-size:15px;">Alex Antonio Garcia Perdriau</span>
+       </div>
+      </div>
+      <div class="flex-shrink-0 flex gap-2 mt-1"><span class="trait-badge"><i data-lucide="rocket" style="width:14px;height:14px;"></i> Initiative</span> <span class="trait-badge"><i data-lucide="heart-handshake" style="width:14px;height:14px;"></i> Humility</span> <span class="trait-badge"><i data-lucide="compass" style="width:14px;height:14px;"></i> Uncertainty</span>
+      </div>
+     </div>
+     <div class="w-full h-px mt-4" style="background: linear-gradient(90deg, transparent, rgba(74,124,138,0.4), rgba(45,90,63,0.4), transparent);"></div>
+    </header><!-- TRAITS SECTION -->
+    <section class="section-card fade-up fade-up-2 mb-5">
+     <h2 class="font-display text-white mb-3" style="font-size:16px;">My Chosen Entrepreneurial Mindset Traits</h2>
+     <div class="grid grid-cols-3 gap-4">
+      <div class="flex gap-3">
+       <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(74,124,138,0.2);">
+        <i data-lucide="zap" style="width:16px;height:16px;color:#5a9cae;"></i>
+       </div>
+       <div>
+        <p class="text-white font-semibold" style="font-size:13px;">Initiative</p>
+        <p class="text-gray-400" style="font-size:11.5px;line-height:1.45;">Nothing in this challenge would happen unless I actively approached people, asked for feedback, and followed up instead of waiting for the right moment.</p>
+       </div>
+      </div>
+      <div class="flex gap-3">
+       <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(74,124,138,0.2);">
+        <i data-lucide="hand-metal" style="width:16px;height:16px;color:#5a9cae;"></i>
+       </div>
+       <div>
+        <p class="text-white font-semibold" style="font-size:13px;">Humility</p>
+        <p class="text-gray-400" style="font-size:11.5px;line-height:1.45;">I wanted to get better at hearing honest feedback without becoming defensive, especially when other students did not value the idea in the way I expected.</p>
+       </div>
+      </div>
+      <div class="flex gap-3">
+       <div class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(74,124,138,0.2);">
+        <i data-lucide="help-circle" style="width:16px;height:16px;color:#5a9cae;"></i>
+       </div>
+       <div>
+        <p class="text-white font-semibold" style="font-size:13px;">Comfort with Uncertainty</p>
+        <p class="text-gray-400" style="font-size:11.5px;line-height:1.45;">I had no way of knowing whether strangers would ignore the tool, criticise it, or actually use it, so I wanted to practice acting without certainty.</p>
+       </div>
+      </div>
+     </div>
+    </section><!-- TIMELINE -->
+    <div class="fade-up fade-up-3 flex items-center gap-3 mb-4 px-8">
+     <div class="text-center">
+      <div class="timeline-dot active mx-auto"></div>
+      <p class="text-gray-500 mt-1" style="font-size:9px;letter-spacing:0.05em;">ATTEMPT 1</p>
+     </div>
+     <div class="timeline-line"></div>
+     <div class="text-center">
+      <div class="timeline-dot active mx-auto"></div>
+      <p class="text-gray-500 mt-1" style="font-size:9px;letter-spacing:0.05em;">ATTEMPT 2</p>
+     </div>
+     <div class="timeline-line"></div>
+     <div class="text-center">
+      <div class="timeline-dot active mx-auto"></div>
+      <p class="text-gray-500 mt-1" style="font-size:9px;letter-spacing:0.05em;">ATTEMPT 3</p>
+     </div>
+     <div class="ml-2">
+      <i data-lucide="arrow-right" style="width:18px;height:18px;color:#5a9cae;"></i>
+     </div>
+     <p class="text-gray-500" style="font-size:9px;">GROWTH</p>
+    </div><!-- THREE ATTEMPTS -->
+    <div class="grid grid-cols-3 gap-4 fade-up fade-up-3 mb-5"><!-- ATTEMPT 1 -->
+     <div class="attempt-card">
+      <h3 class="font-display text-white mb-3" style="font-size:14.5px;">Attempt 1: Starting Point</h3>
+      <div class="mb-3">
+       <p class="sub-label">Traits Targeted</p>
+       <p class="text-gray-300" style="font-size:11.5px;">Initiative, humility, comfort with uncertainty</p>
+      </div>
+      <div class="mb-3">
+       <p class="sub-label">Goal</p>
+       <p class="text-gray-300" style="font-size:11.5px;line-height:1.45;">Test whether a student-built planner combining gym routines and healthier eating could solve a real problem. Target: 8 students to try it, 2 to use it for a full week.</p>
+      </div>
+      <div class="mb-3">
+       <p class="sub-label">Planned Approach</p>
+       <p class="text-gray-300" style="font-size:11.5px;line-height:1.45;">Build a polished prototype first, then share it online and let the quality of the idea speak for itself.</p>
+      </div>
+      <div class="mb-3">
+       <p class="sub-label">What Actually Happened</p>
+       <p class="text-gray-300" style="font-size:11.5px;line-height:1.45;">Spent too much time polishing the tool before speaking to real users. Built the homepage, weekly tracker, and meal-planning section, then posted a generic message in student group chats and Instagram with a form link. Avoided approaching people in person.</p>
+      </div>
+      <div class="mb-2">
+       <p class="sub-label">Outcome</p>
+       <p class="text-gray-300" style="font-size:11.5px;line-height:1.45;"><span class="text-red-400 font-semibold">Failure.</span> A few clicks, one incomplete response. No one used it for a week. No detailed feedback.</p>
+      </div>
+      <div class="feeling-box">
+       <p class="text-gray-400" style="font-size:10.5px;"><i data-lucide="frown" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:4px;color:#4a7c8a;"></i> <strong class="text-gray-300">Felt:</strong> Embarrassed, frustrated, disappointed — realised I had hidden behind building instead of testing.</p>
+      </div>
+      <div class="learned-box">
+       <p class="text-gray-400" style="font-size:10.5px;"><i data-lucide="lightbulb" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:4px;color:#2d5a3f;"></i> <strong class="text-gray-300">Learned:</strong> A polished idea ≠ a wanted idea. Silence is still feedback. Generic outreach teaches very little.</p>
+      </div>
+     </div><!-- ATTEMPT 2 -->
+     <div class="attempt-card">
+      <h3 class="font-display text-white mb-3" style="font-size:14.5px;">Attempt 2: Adapted Plan</h3>
+      <div class="mb-3">
+       <p class="sub-label">Goal</p>
+       <p class="text-gray-300" style="font-size:11.5px;line-height:1.45;">Same: 8 students to try it, 2 to use it for a full week.</p>
+      </div>
+      <div class="mb-3">
+       <p class="sub-label">Planned Approach</p>
+       <p class="text-gray-300" style="font-size:11.5px;line-height:1.45;">Simplify the prototype, speak to students in person, and ask for direct feedback instead of hoping a link would do the work.</p>
+      </div>
+      <div class="mb-3">
+       <p class="sub-label">What Actually Happened</p>
+       <p class="text-gray-300" style="font-size:11.5px;line-height:1.45;">Reduced the prototype to one simple weekly view. Prepared three short questions about gym habits, eating struggles, and whether the tool seemed useful. Approached students near the library and student union. Had real conversations and gathered honest reactions.</p>
+      </div>
+      <div class="mb-2">
+       <p class="sub-label">Outcome</p>
+       <p class="text-gray-300" style="font-size:11.5px;line-height:1.45;"><span class="text-yellow-400 font-semibold">Partial success.</span> Spoke to more students face-to-face. Received useful criticism. Some were interested but most didn't follow through for a full week.</p>
+      </div>
+      <div class="feeling-box">
+       <p class="text-gray-400" style="font-size:10.5px;"><i data-lucide="meh" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:4px;color:#4a7c8a;"></i> <strong class="text-gray-300">Felt:</strong> More engaged but still uncomfortable. The in-person conversations were harder than expected, yet more rewarding.</p>
+      </div>
+      <div class="learned-box">
+       <p class="text-gray-400" style="font-size:10.5px;"><i data-lucide="lightbulb" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:4px;color:#2d5a3f;"></i> <strong class="text-gray-300">Learned:</strong> Real feedback requires real contact. Simplification made the idea easier to explain and test. Discomfort is part of the process.</p>
+      </div>
+     </div><!-- ATTEMPT 3 -->
+     <div class="attempt-card">
+      <h3 class="font-display text-white mb-3" style="font-size:14.5px;">Attempt 3: Final Iteration</h3>
+      <div class="mb-3">
+       <p class="sub-label">Goal</p>
+       <p class="text-gray-300" style="font-size:11.5px;line-height:1.45;">Refined: focus less on sign-ups and more on understanding what students actually needed from a wellness tool.</p>
+      </div>
+      <div class="mb-3">
+       <p class="sub-label">Planned Approach</p>
+       <p class="text-gray-300" style="font-size:11.5px;line-height:1.45;">Lead with questions, not the product. Use feedback from Attempt 2 to reshape the pitch and the tool itself. Follow up with interested students.</p>
+      </div>
+      <div class="mb-3">
+       <p class="sub-label">What Actually Happened</p>
+       <p class="text-gray-300" style="font-size:11.5px;line-height:1.45;">Shifted from selling to listening. Asked open-ended questions first, only showing the tool if relevant. Followed up via messages with students who expressed interest. Created a simplified version based on the most common pain points heard.</p>
+      </div>
+      <div class="mb-2">
+       <p class="sub-label">Outcome</p>
+       <p class="text-gray-300" style="font-size:11.5px;line-height:1.45;"><span class="text-green-400 font-semibold">Meaningful progress.</span> Deeper conversations. A few students used the tool for multiple days. The idea evolved based on genuine needs rather than assumptions.</p>
+      </div>
+      <div class="feeling-box">
+       <p class="text-gray-400" style="font-size:10.5px;"><i data-lucide="smile" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:4px;color:#4a7c8a;"></i> <strong class="text-gray-300">Felt:</strong> More confident and less attached to being right. The discomfort became productive rather than paralysing.</p>
+      </div>
+      <div class="learned-box">
+       <p class="text-gray-400" style="font-size:10.5px;"><i data-lucide="lightbulb" style="width:12px;height:12px;display:inline;vertical-align:middle;margin-right:4px;color:#2d5a3f;"></i> <strong class="text-gray-300">Learned:</strong> Listening first builds trust and reveals what matters. Iteration is not failure — it's the method. The idea improved because I let go of my first version.</p>
+      </div>
+     </div>
+    </div><!-- BOTTOM SECTION -->
+    <div class="grid grid-cols-5 gap-4 fade-up fade-up-4"><!-- FINAL REFLECTION -->
+     <div class="col-span-3 section-card" style="background:rgba(26,58,42,0.2); border-color:rgba(45,90,63,0.3);">
+      <h2 class="font-display text-white mb-3 flex items-center gap-2" style="font-size:16px;"><i data-lucide="pen-tool" style="width:16px;height:16px;color:#5a9cae;"></i> Final Reflection</h2>
+      <div class="text-gray-300 space-y-2" style="font-size:12px;line-height:1.55;">
+       <p>This challenge taught me that entrepreneurial thinking is not about having a perfect idea — it is about being willing to expose an imperfect one to the world and learn from what comes back. Across three attempts, I moved from hiding behind a polished prototype to having genuine conversations with strangers about their real problems.</p>
+       <p>The traits I chose — <strong class="text-white">initiative</strong>, <strong class="text-white">humility</strong>, and <strong class="text-white">comfort with uncertainty</strong> — were not just labels. They were muscles I had to use repeatedly. Initiative meant sending that first awkward message and walking up to a stranger in the library. Humility meant accepting that my idea needed changing. Comfort with uncertainty meant continuing to act even when I had no guarantee the next attempt would go better.</p>
+       <p>The biggest shift was internal: I stopped trying to prove my idea was good and started trying to understand whether it was useful. That reframe changed everything — from how I asked questions to how I interpreted silence. If I were to do this again, I would start with conversations on day one and build only after listening.</p>
+      </div>
+     </div><!-- EVIDENCE -->
+     <div class="col-span-2 section-card">
+      <h2 class="font-display text-white mb-3 flex items-center gap-2" style="font-size:16px;"><i data-lucide="folder-open" style="width:16px;height:16px;color:#5a9cae;"></i> Evidence to Include</h2>
+      <ul class="space-y-2">
+       <li class="flex items-start gap-2"><i data-lucide="check-circle" style="width:14px;height:14px;color:#2d5a3f;flex-shrink:0;margin-top:2px;"></i> <p class="text-gray-300" style="font-size:11.5px;">Screenshots of the original prototype and simplified versions showing iteration</p></li>
+       <li class="flex items-start gap-2"><i data-lucide="check-circle" style="width:14px;height:14px;color:#2d5a3f;flex-shrink:0;margin-top:2px;"></i> <p class="text-gray-300" style="font-size:11.5px;">Instagram story and group chat posts from Attempt 1</p></li>
+       <li class="flex items-start gap-2"><i data-lucide="check-circle" style="width:14px;height:14px;color:#2d5a3f;flex-shrink:0;margin-top:2px;"></i> <p class="text-gray-300" style="font-size:11.5px;">Notes from in-person conversations (Attempts 2 &amp; 3)</p></li>
+       <li class="flex items-start gap-2"><i data-lucide="check-circle" style="width:14px;height:14px;color:#2d5a3f;flex-shrink:0;margin-top:2px;"></i> <p class="text-gray-300" style="font-size:11.5px;">Follow-up messages with students who tested the tool</p></li>
+       <li class="flex items-start gap-2"><i data-lucide="check-circle" style="width:14px;height:14px;color:#2d5a3f;flex-shrink:0;margin-top:2px;"></i> <p class="text-gray-300" style="font-size:11.5px;">Feedback responses and usage data from the final version</p></li>
+       <li class="flex items-start gap-2"><i data-lucide="check-circle" style="width:14px;height:14px;color:#2d5a3f;flex-shrink:0;margin-top:2px;"></i> <p class="text-gray-300" style="font-size:11.5px;">Personal journal entries documenting emotional responses and reflections after each attempt</p></li>
+      </ul>
+     </div>
+    </div><!-- FOOTER -->
+    <footer class="fade-up fade-up-5 mt-4 text-center">
+     <div class="w-full h-px mb-3" style="background: linear-gradient(90deg, transparent, rgba(74,124,138,0.3), transparent);"></div>
+     <p class="text-gray-500" style="font-size:10px; letter-spacing:0.06em;">Entrepreneurial Mindset Challenge — University Assessment — Alex Antonio Garcia Perdriau</p>
+    </footer>
+   </div>
+  </div>
+  <script>
+  const defaultConfig = {
+    poster_title: 'Building Less, Listening More: Three Attempts to Test a Student Fitness and Healthy-Eating Planner',
+    student_name: 'Alex Antonio Garcia Perdriau',
+    background_color: '#1e1e1e',
+    surface_color: '#2a2a2a',
+    text_color: '#e5e7eb',
+    primary_action_color: '#4a7c8a',
+    secondary_action_color: '#2d5a3f',
+    font_family: 'Source Sans 3',
+    font_size: 12
+  };
+
+  function applyConfig(config) {
+    const title = document.getElementById('poster-title');
+    const name = document.getElementById('student-name');
+    if (title) title.textContent = config.poster_title || defaultConfig.poster_title;
+    if (name) name.textContent = config.student_name || defaultConfig.student_name;
+
+    const bg = config.background_color || defaultConfig.background_color;
+    const surface = config.surface_color || defaultConfig.surface_color;
+    const text = config.text_color || defaultConfig.text_color;
+    const primary = config.primary_action_color || defaultConfig.primary_action_color;
+    const secondary = config.secondary_action_color || defaultConfig.secondary_action_color;
+    const font = config.font_family || defaultConfig.font_family;
+    const baseSize = config.font_size || defaultConfig.font_size;
+
+    document.querySelector('.poster-wrap').style.background = bg;
+    document.querySelectorAll('.section-card, .attempt-card').forEach(el => {
+      el.style.borderColor = `${primary}33`;
+    });
+    document.querySelectorAll('.sub-label').forEach(el => el.style.color = primary);
+    document.querySelectorAll('.trait-badge').forEach(el => {
+      el.style.borderColor = `${primary}55`;
+      el.style.background = `${primary}22`;
+    });
+
+    document.querySelectorAll('.font-body').forEach(el => {
+      el.style.fontFamily = `${font}, 'Segoe UI', sans-serif`;
+    });
+    document.querySelector('.poster-inner').style.fontFamily = `${font}, 'Segoe UI', sans-serif`;
+  }
+
+  window.elementSdk.init({
+    defaultConfig,
+    onConfigChange: async (config) => applyConfig(config),
+    mapToCapabilities: (config) => ({
+      recolorables: [
+        { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); }},
+        { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); }},
+        { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); }},
+        { get: () => config.primary_action_color || defaultConfig.primary_action_color, set: (v) => { config.primary_action_color = v; window.elementSdk.setConfig({ primary_action_color: v }); }},
+        { get: () => config.secondary_action_color || defaultConfig.secondary_action_color, set: (v) => { config.secondary_action_color = v; window.elementSdk.setConfig({ secondary_action_color: v }); }},
+      ],
+      borderables: [],
+      fontEditable: {
+        get: () => config.font_family || defaultConfig.font_family,
+        set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); }
+      },
+      fontSizeable: {
+        get: () => config.font_size || defaultConfig.font_size,
+        set: (v) => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); }
+      }
+    }),
+    mapToEditPanelValues: (config) => new Map([
+      ['poster_title', config.poster_title || defaultConfig.poster_title],
+      ['student_name', config.student_name || defaultConfig.student_name],
+    ])
+  });
+
+  lucide.createIcons();
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9eaca330d761ecad',t:'MTc3NTkzODI1NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
