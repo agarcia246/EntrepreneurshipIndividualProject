@@ -320,6 +320,193 @@ export function useStats() {
   return { stats, loading }
 }
 
+// ─── Detailed Stats (for rich Progress page) ───────────────
+
+export interface DailySnapshot {
+  date: string
+  dayLabel: string
+  habitsCompleted: number
+  habitsTotal: number
+  habitRate: number
+  workoutsDone: number
+  calories: number
+  protein: number
+  mealsLogged: number
+}
+
+export interface HabitBreakdown {
+  id: string
+  label: string
+  icon: string
+  completedDays: number
+  totalDays: number
+  rate: number
+  currentStreak: number
+}
+
+export interface WeekComparison {
+  week1HabitRate: number
+  week2HabitRate: number
+  week1Workouts: number
+  week2Workouts: number
+  week1AvgCalories: number
+  week2AvgCalories: number
+  week1AvgProtein: number
+  week2AvgProtein: number
+}
+
+export interface DetailedStats {
+  days: DailySnapshot[]
+  habitBreakdowns: HabitBreakdown[]
+  weekComparison: WeekComparison
+  totals: {
+    workoutsCompleted: number
+    workoutsTotal: number
+    mealsLogged: number
+    habitsCompleted: number
+    habitsTotal: number
+    avgDailyCalories: number
+    avgDailyProtein: number
+    bestDay: DailySnapshot | null
+    activeDayStreak: number
+  }
+  checkIns: WeeklyCheckIn[]
+}
+
+export function useDetailedStats(rangeDays = 14) {
+  const { user } = useAuth()
+  const [data, setData] = useState<DetailedStats | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!user) return
+    setLoading(true)
+
+    const today = new Date()
+    const startDate = new Date(today)
+    startDate.setDate(today.getDate() - rangeDays + 1)
+    const startISO = startDate.toISOString().split('T')[0]
+    const endISO = today.toISOString().split('T')[0]
+
+    const dateList: string[] = []
+    for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
+      dateList.push(d.toISOString().split('T')[0])
+    }
+
+    Promise.all([
+      supabase.from('habits').select('*').eq('user_id', user.id).order('sort_order'),
+      supabase.from('habit_logs').select('*').eq('user_id', user.id).gte('date', startISO).lte('date', endISO),
+      supabase.from('workouts').select('*').eq('user_id', user.id).gte('date', startISO).lte('date', endISO),
+      supabase.from('meals').select('*').eq('user_id', user.id).gte('date', startISO).lte('date', endISO),
+      supabase.from('weekly_check_ins').select('*').eq('user_id', user.id).order('week_start', { ascending: false }).limit(4),
+    ]).then(([habitsRes, logsRes, workoutsRes, mealsRes, checkInsRes]) => {
+      const habits = habitsRes.data ?? []
+      const logs = logsRes.data ?? []
+      const workouts = workoutsRes.data ?? []
+      const meals = mealsRes.data ?? []
+      const checkIns = checkInsRes.data ?? []
+      const totalHabits = habits.length
+
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+      const days: DailySnapshot[] = dateList.map(date => {
+        const dayLogs = logs.filter(l => l.date === date)
+        const dayWorkouts = workouts.filter(w => w.date === date && w.completed)
+        const dayMeals = meals.filter(m => m.date === date)
+        const completed = dayLogs.filter(l => l.completed).length
+        const d = new Date(date + 'T12:00:00')
+        return {
+          date,
+          dayLabel: `${dayNames[d.getDay()]} ${d.getDate()}`,
+          habitsCompleted: completed,
+          habitsTotal: totalHabits,
+          habitRate: totalHabits > 0 ? Math.round((completed / totalHabits) * 100) : 0,
+          workoutsDone: dayWorkouts.length,
+          calories: dayMeals.reduce((s, m) => s + (m.calories || 0), 0),
+          protein: dayMeals.reduce((s, m) => s + (m.protein || 0), 0),
+          mealsLogged: dayMeals.length,
+        }
+      })
+
+      // Per-habit breakdown
+      const habitBreakdowns: HabitBreakdown[] = habits.map(h => {
+        const hLogs = logs.filter(l => l.habit_id === h.id)
+        const completedDays = hLogs.filter(l => l.completed).length
+
+        // Calculate current streak (consecutive completed days ending today or yesterday)
+        let streak = 0
+        for (let i = dateList.length - 1; i >= 0; i--) {
+          const log = hLogs.find(l => l.date === dateList[i])
+          if (log?.completed) streak++
+          else break
+        }
+
+        return {
+          id: h.id,
+          label: h.label,
+          icon: h.icon,
+          completedDays,
+          totalDays: dateList.length,
+          rate: Math.round((completedDays / dateList.length) * 100),
+          currentStreak: streak,
+        }
+      })
+
+      // Week-over-week comparison
+      const midpoint = Math.floor(dateList.length / 2)
+      const week1Days = days.slice(0, midpoint)
+      const week2Days = days.slice(midpoint)
+
+      const avg = (arr: number[]) => arr.length > 0 ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0
+      const sum = (arr: number[]) => arr.reduce((a, b) => a + b, 0)
+
+      const weekComparison: WeekComparison = {
+        week1HabitRate: avg(week1Days.map(d => d.habitRate)),
+        week2HabitRate: avg(week2Days.map(d => d.habitRate)),
+        week1Workouts: sum(week1Days.map(d => d.workoutsDone)),
+        week2Workouts: sum(week2Days.map(d => d.workoutsDone)),
+        week1AvgCalories: avg(week1Days.filter(d => d.calories > 0).map(d => d.calories)),
+        week2AvgCalories: avg(week2Days.filter(d => d.calories > 0).map(d => d.calories)),
+        week1AvgProtein: avg(week1Days.filter(d => d.protein > 0).map(d => d.protein)),
+        week2AvgProtein: avg(week2Days.filter(d => d.protein > 0).map(d => d.protein)),
+      }
+
+      const bestDay = [...days].sort((a, b) => b.habitRate - a.habitRate)[0] || null
+
+      // Active day streak
+      let activeDayStreak = 0
+      for (let i = days.length - 1; i >= 0; i--) {
+        if (days[i].habitsCompleted > 0 || days[i].workoutsDone > 0) activeDayStreak++
+        else break
+      }
+
+      const totalWorkoutsCompleted = workouts.filter(w => w.completed).length
+      const daysWithCalories = days.filter(d => d.calories > 0)
+
+      setData({
+        days,
+        habitBreakdowns,
+        weekComparison,
+        totals: {
+          workoutsCompleted: totalWorkoutsCompleted,
+          workoutsTotal: workouts.length,
+          mealsLogged: meals.length,
+          habitsCompleted: logs.filter(l => l.completed).length,
+          habitsTotal: logs.length,
+          avgDailyCalories: avg(daysWithCalories.map(d => d.calories)),
+          avgDailyProtein: avg(daysWithCalories.map(d => d.protein)),
+          bestDay,
+          activeDayStreak,
+        },
+        checkIns,
+      })
+      setLoading(false)
+    })
+  }, [user, rangeDays])
+
+  return { data, loading }
+}
+
 // ─── Seed default data for new users ───────────────────────
 
 export async function seedDefaultData(userId: string) {
