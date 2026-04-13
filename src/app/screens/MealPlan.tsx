@@ -1,8 +1,17 @@
-import { ArrowLeft, Flame, Beef, Trash2, Plus, Loader2 } from "lucide-react";
-import { useNavigate } from "react-router";
+import { Flame, Beef, Trash2, Plus } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { useMeals } from "@/lib/hooks";
+import { toast } from "sonner";
+import {
+  PageHeader,
+  SkeletonScreen,
+  EmptyState,
+  GradientCard,
+  Card,
+  AnimatedNumber,
+  PrimaryButton,
+} from "../components/shared";
 
 const sampleMeals = [
   { meal_type: "Breakfast", name: "Greek Yogurt Bowl", description: "Greek yogurt, granola, berries, honey", calories: 420, protein: 24 },
@@ -11,8 +20,14 @@ const sampleMeals = [
   { meal_type: "Snack", name: "Protein Shake", description: "Whey protein, banana, peanut butter, oat milk", calories: 350, protein: 28 },
 ];
 
+const mealTypeColors: Record<string, string> = {
+  Breakfast: "bg-amber-500/10 text-amber-600",
+  Lunch: "bg-green-500/10 text-green-600",
+  Dinner: "bg-blue-500/10 text-blue-600",
+  Snack: "bg-purple-500/10 text-purple-600",
+};
+
 export function MealPlan() {
-  const navigate = useNavigate();
   const { meals, loading, add, remove } = useMeals();
   const [adding, setAdding] = useState(false);
 
@@ -26,125 +41,98 @@ export function MealPlan() {
       await add({ ...meal, date: today } as any);
     }
     setAdding(false);
+    toast.success("Meal plan generated!");
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-      </div>
-    );
-  }
+  const handleRemove = async (id: string, name: string) => {
+    await remove(id);
+    toast("Meal removed", { description: name });
+  };
+
+  if (loading) return <SkeletonScreen cards={4} />;
 
   return (
-    <div className="min-h-screen bg-background px-6 pt-8 pb-6">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
-      >
-        <button onClick={() => navigate("/app")} className="mb-4">
-          <ArrowLeft className="w-6 h-6 text-foreground" />
-        </button>
-        <h1 className="text-3xl text-foreground mb-1">Meal Plan</h1>
-        <p className="text-muted-foreground">Today's nutrition plan</p>
-      </motion.div>
+    <div className="min-h-screen bg-background px-5 pt-8 pb-6">
+      <PageHeader
+        title="Meal Plan"
+        subtitle="Today's nutrition plan"
+        back="/app"
+      />
 
       {meals.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-accent rounded-3xl p-6 text-accent-foreground mb-6"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm opacity-80">Daily totals</span>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+        <GradientCard gradient="var(--gradient-accent)" className="mb-4">
+          <span className="text-xs font-medium opacity-80">Daily totals</span>
+          <div className="grid grid-cols-2 gap-4 mt-2.5">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Flame className="w-4 h-4" />
-                <span className="text-sm opacity-80">Calories</span>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <Flame className="w-4 h-4 opacity-80" />
+                <span className="text-xs opacity-70">Calories</span>
               </div>
-              <p className="text-2xl">{totalCalories.toLocaleString()}</p>
+              <AnimatedNumber value={totalCalories} className="text-2xl font-bold" />
             </div>
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Beef className="w-4 h-4" />
-                <span className="text-sm opacity-80">Protein</span>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <Beef className="w-4 h-4 opacity-80" />
+                <span className="text-xs opacity-70">Protein</span>
               </div>
-              <p className="text-2xl">{totalProtein}g</p>
+              <AnimatedNumber value={totalProtein} suffix="g" className="text-2xl font-bold" />
             </div>
           </div>
-        </motion.div>
+        </GradientCard>
       )}
 
       {meals.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center py-16"
-        >
-          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-            <Plus className="w-8 h-8 text-muted-foreground" />
-          </div>
-          <p className="text-muted-foreground mb-4">No meals logged today</p>
-          <button
-            onClick={handleGenerateMeals}
-            disabled={adding}
-            className="bg-primary text-primary-foreground px-6 py-3 rounded-2xl disabled:opacity-60 flex items-center justify-center gap-2 mx-auto"
-          >
-            {adding && <Loader2 className="w-4 h-4 animate-spin" />}
-            Generate Meal Plan
-          </button>
-        </motion.div>
+        <EmptyState
+          icon={Plus}
+          title="No meals logged"
+          description="Generate a meal plan to start tracking your nutrition"
+          action={
+            <PrimaryButton onClick={handleGenerateMeals} loading={adding} className="w-auto px-6">
+              Generate Meal Plan
+            </PrimaryButton>
+          }
+        />
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-2.5">
           {meals.map((meal, index) => (
-            <motion.div
-              key={meal.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="bg-card rounded-3xl p-6 border border-border"
-            >
-              <div className="flex items-start justify-between mb-3">
+            <Card key={meal.id} delay={index * 0.06}>
+              <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
-                  <span className="text-sm text-muted-foreground">{meal.meal_type}</span>
-                  <h3 className="text-lg text-foreground mb-1">{meal.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-3">{meal.description}</p>
-                  <div className="flex gap-4 text-sm">
-                    <div className="flex items-center gap-1">
-                      <Flame className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-foreground">{meal.calories} cal</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Beef className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-foreground">{meal.protein}g protein</span>
-                    </div>
-                  </div>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${mealTypeColors[meal.meal_type] || "bg-muted text-muted-foreground"}`}>
+                    {meal.meal_type}
+                  </span>
+                  <h3 className="text-foreground font-semibold mt-1.5">{meal.name}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">{meal.description}</p>
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <button
-                  onClick={() => remove(meal.id)}
-                  className="flex-1 py-2 rounded-xl border border-border text-foreground text-sm flex items-center justify-center gap-2"
+              <div className="flex items-center justify-between mt-3">
+                <div className="flex gap-3 text-xs">
+                  <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded-full">
+                    <Flame className="w-3 h-3 text-muted-foreground" />
+                    <span className="font-medium text-foreground">{meal.calories} cal</span>
+                  </div>
+                  <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded-full">
+                    <Beef className="w-3 h-3 text-muted-foreground" />
+                    <span className="font-medium text-foreground">{meal.protein}g</span>
+                  </div>
+                </div>
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => handleRemove(meal.id, meal.name)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-destructive/10 transition-colors"
                 >
-                  <Trash2 className="w-4 h-4" />
-                  Remove
-                </button>
+                  <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive transition-colors" />
+                </motion.button>
               </div>
-            </motion.div>
+            </Card>
           ))}
 
-          <button
-            onClick={handleGenerateMeals}
-            disabled={adding}
-            className="w-full mt-6 bg-primary text-primary-foreground py-4 rounded-2xl disabled:opacity-60 flex items-center justify-center gap-2"
-          >
-            {adding && <Loader2 className="w-4 h-4 animate-spin" />}
-            Generate More Meals
-          </button>
+          <div className="pt-2">
+            <PrimaryButton onClick={handleGenerateMeals} loading={adding}>
+              Generate More Meals
+            </PrimaryButton>
+          </div>
         </div>
       )}
     </div>

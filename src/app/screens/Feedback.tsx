@@ -1,8 +1,16 @@
 import { useState, useEffect } from "react";
-import { motion } from "motion/react";
-import { ArrowLeft, Star, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { Star, Check } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useWeeklyCheckIn } from "@/lib/hooks";
+import { toast } from "sonner";
+import confetti from "canvas-confetti";
+import {
+  PageHeader,
+  SkeletonScreen,
+  Card,
+  PrimaryButton,
+} from "../components/shared";
 
 const focusOptions = [
   "More consistent workouts",
@@ -20,7 +28,6 @@ export function Feedback() {
   const [challenges, setChallenges] = useState("");
   const [focus, setFocus] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     if (checkIn) {
@@ -41,70 +48,78 @@ export function Feedback() {
     setSubmitting(true);
     await save({ rating, consistency, challenges, focus_areas: focus });
     setSubmitting(false);
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
+    confetti({
+      particleCount: 50,
+      spread: 50,
+      origin: { y: 0.65 },
+      colors: ["#16a34a", "#0ea5e9", "#f59e0b"],
+    });
+    toast.success("Check-in submitted!", {
+      description: "Keep reflecting — it makes a difference.",
+    });
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-      </div>
-    );
-  }
+  if (loading) return <SkeletonScreen cards={4} />;
+
+  const consistencyLabels = ["", "Not at all", "Slightly", "Somewhat", "Quite", "Very"];
 
   return (
-    <div className="min-h-screen bg-background px-6 pt-8 pb-6">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
-      >
-        <button onClick={() => navigate("/app/progress")} className="mb-4">
-          <ArrowLeft className="w-6 h-6 text-foreground" />
-        </button>
-        <h1 className="text-3xl text-foreground mb-1">Weekly Check-In</h1>
-        <p className="text-muted-foreground">Reflect on your week</p>
-      </motion.div>
+    <div className="min-h-screen bg-background px-5 pt-8 pb-6">
+      <PageHeader
+        title="Weekly Check-In"
+        subtitle="Reflect on your week"
+        back="/app/progress"
+      />
 
-      <div className="space-y-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-card rounded-3xl p-6 border border-border"
-        >
-          <label className="block text-foreground mb-4">
-            Rate your week from 1-5
+      <div className="space-y-3">
+        <Card>
+          <label className="block text-sm font-semibold text-foreground mb-3">
+            Rate your week
           </label>
-          <div className="flex gap-2 justify-center">
+          <div className="flex gap-1.5 justify-center">
             {[1, 2, 3, 4, 5].map((star) => (
-              <button
+              <motion.button
                 key={star}
+                whileTap={{ scale: 0.85 }}
                 onClick={() => setRating(star)}
-                className="p-2"
+                className="p-1.5 rounded-lg hover:bg-muted transition-colors"
               >
-                <Star
-                  className={`w-10 h-10 ${
-                    star <= rating
-                      ? "fill-primary text-primary"
-                      : "text-muted-foreground"
-                  }`}
-                />
-              </button>
+                <motion.div
+                  animate={{
+                    scale: star <= rating ? [1, 1.2, 1] : 1,
+                  }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Star
+                    className={`w-9 h-9 transition-colors ${
+                      star <= rating
+                        ? "fill-amber-400 text-amber-400"
+                        : "text-muted-foreground/30"
+                    }`}
+                  />
+                </motion.div>
+              </motion.button>
             ))}
           </div>
-        </motion.div>
+          {rating > 0 && (
+            <motion.p
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center text-xs text-muted-foreground mt-2"
+            >
+              {rating <= 2 ? "We all have tough weeks. Next one will be better!" :
+               rating === 3 ? "Solid week! Room for growth." :
+               rating === 4 ? "Great week! You're building momentum." :
+               "Amazing week! You crushed it!"}
+            </motion.p>
+          )}
+        </Card>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-card rounded-3xl p-6 border border-border"
-        >
-          <label className="block text-foreground mb-4">
-            How consistent did you feel this week?
+        <Card delay={0.05}>
+          <label className="block text-sm font-semibold text-foreground mb-3">
+            How consistent did you feel?
           </label>
-          <div className="space-y-4">
+          <div className="space-y-3">
             <input
               type="range"
               min="1"
@@ -113,75 +128,82 @@ export function Feedback() {
               onChange={(e) => setConsistency(Number(e.target.value))}
               className="w-full"
             />
-            <div className="flex justify-between text-sm text-muted-foreground">
+            <div className="flex justify-between text-[10px] text-muted-foreground">
               <span>Not consistent</span>
               <span>Very consistent</span>
             </div>
-            <p className="text-center text-2xl text-primary">{consistency}/5</p>
+            <div className="text-center">
+              <span className="text-2xl font-bold text-primary">{consistency}</span>
+              <span className="text-sm text-muted-foreground">/5</span>
+              <p className="text-xs text-muted-foreground mt-0.5">{consistencyLabels[consistency]} consistent</p>
+            </div>
           </div>
-        </motion.div>
+        </Card>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-card rounded-3xl p-6 border border-border"
-        >
-          <label className="block text-foreground mb-4">
+        <Card delay={0.1}>
+          <label className="block text-sm font-semibold text-foreground mb-2.5">
             What got in the way?
           </label>
           <textarea
             value={challenges}
             onChange={(e) => setChallenges(e.target.value)}
             placeholder="Share any challenges or obstacles..."
-            className="w-full p-4 rounded-xl border border-border bg-background text-foreground resize-none h-32"
+            className="w-full p-3 rounded-lg border border-border bg-background text-foreground text-sm resize-none h-28 shadow-[var(--shadow-card)]"
           />
-        </motion.div>
+        </Card>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-card rounded-3xl p-6 border border-border"
-        >
-          <label className="block text-foreground mb-4">
+        <Card delay={0.15}>
+          <label className="block text-sm font-semibold text-foreground mb-3">
             What should next week focus on?
           </label>
-          <div className="space-y-2">
-            {focusOptions.map((option) => (
-              <button
-                key={option}
-                onClick={() => toggleFocus(option)}
-                className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
-                  focus.includes(option)
-                    ? "border-primary bg-primary/5"
-                    : "border-border"
-                }`}
-              >
-                <span className="text-foreground">{option}</span>
-              </button>
-            ))}
+          <div className="space-y-1.5">
+            {focusOptions.map((option) => {
+              const isSelected = focus.includes(option);
+              return (
+                <motion.button
+                  key={option}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => toggleFocus(option)}
+                  className={`w-full p-3.5 rounded-lg flex items-center gap-3 transition-all text-left ${
+                    isSelected
+                      ? "bg-primary/5 border-2 border-primary"
+                      : "bg-muted/50 border-2 border-transparent"
+                  }`}
+                >
+                  <AnimatePresence mode="wait">
+                    {isSelected ? (
+                      <motion.div
+                        key="check"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0"
+                      >
+                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="empty"
+                        initial={{ scale: 0.8 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        className="w-5 h-5 rounded-full border-2 border-border flex-shrink-0"
+                      />
+                    )}
+                  </AnimatePresence>
+                  <span className="text-sm text-foreground">{option}</span>
+                </motion.button>
+              );
+            })}
           </div>
-        </motion.div>
+        </Card>
 
-        {submitted && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-primary/10 text-primary px-4 py-3 rounded-xl text-sm text-center"
-          >
-            Check-in saved successfully!
-          </motion.div>
-        )}
-
-        <button
+        <PrimaryButton
           onClick={handleSubmit}
-          disabled={submitting}
-          className="w-full bg-primary text-primary-foreground py-4 rounded-2xl disabled:opacity-60 flex items-center justify-center gap-2"
+          loading={submitting}
         >
-          {submitting && <Loader2 className="w-5 h-5 animate-spin" />}
           Submit Check-In
-        </button>
+        </PrimaryButton>
       </div>
     </div>
   );

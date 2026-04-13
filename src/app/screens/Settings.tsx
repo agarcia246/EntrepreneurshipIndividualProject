@@ -1,8 +1,15 @@
-import { User, Bell, Moon, LogOut, ChevronRight, Loader2 } from "lucide-react";
+import { User, Bell, LogOut, ChevronRight } from "lucide-react";
 import { motion } from "motion/react";
 import { useNavigate } from "react-router";
 import { useAuth } from "@/lib/auth";
 import { useProfile } from "@/lib/hooks";
+import { toast } from "sonner";
+import {
+  PageHeader,
+  SkeletonScreen,
+  Card,
+  PrimaryButton,
+} from "../components/shared";
 
 export function Settings() {
   const navigate = useNavigate();
@@ -11,6 +18,7 @@ export function Settings() {
 
   const displayName = profile?.display_name || user?.user_metadata?.display_name || "User";
   const email = user?.email || "";
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   const handleSignOut = async () => {
     await signOut();
@@ -20,134 +28,111 @@ export function Settings() {
   const toggleNotifications = async () => {
     if (profile) {
       await update({ notifications_enabled: !profile.notifications_enabled });
+      toast.success(profile.notifications_enabled ? "Notifications disabled" : "Notifications enabled");
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-      </div>
-    );
-  }
+  if (loading) return <SkeletonScreen cards={4} />;
 
   return (
-    <div className="min-h-screen bg-background px-6 pt-8 pb-6">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
-      >
-        <h1 className="text-3xl text-foreground mb-1">Profile</h1>
-        <p className="text-muted-foreground">Manage your account and preferences</p>
-      </motion.div>
+    <div className="min-h-screen bg-background px-5 pt-8 pb-6">
+      <PageHeader title="Profile" subtitle="Manage your account and preferences" />
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-card rounded-3xl p-6 border border-border mb-6"
-      >
+      <Card className="mb-4">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center">
-            <User className="w-8 h-8 text-white" />
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-bold text-white"
+            style={{ background: "var(--gradient-primary)" }}
+          >
+            {initials}
           </div>
-          <div>
-            <h2 className="text-xl text-foreground">{displayName}</h2>
-            <p className="text-muted-foreground">{email}</p>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-bold text-foreground truncate">{displayName}</h2>
+            <p className="text-sm text-muted-foreground truncate">{email}</p>
           </div>
         </div>
-      </motion.div>
+      </Card>
 
-      <div className="space-y-4">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-card rounded-2xl border border-border overflow-hidden"
-        >
-          <h3 className="text-foreground p-4 border-b border-border">Goals</h3>
-          <div className="p-4">
-            <div className="flex flex-wrap gap-2">
-              {(profile?.goals || []).length > 0 ? (
-                profile!.goals.map((goal) => (
-                  <span key={goal} className="bg-primary/10 text-primary text-sm px-3 py-1 rounded-full">
-                    {goal}
-                  </span>
-                ))
-              ) : (
-                <span className="text-muted-foreground text-sm">No goals set</span>
-              )}
+      <div className="space-y-3">
+        <Card delay={0.05}>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Goals</h3>
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {(profile?.goals || []).length > 0 ? (
+              profile!.goals.map((goal: string) => (
+                <span key={goal} className="bg-primary/10 text-primary text-xs font-medium px-2.5 py-1 rounded-full">
+                  {goal}
+                </span>
+              ))
+            ) : (
+              <span className="text-muted-foreground text-sm">No goals set</span>
+            )}
+          </div>
+          <div className="flex items-center justify-between py-2.5 border-t border-border">
+            <span className="text-sm text-foreground">Weekly workout frequency</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm text-muted-foreground">{profile?.workout_days || "3-4"} days</span>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </div>
           </div>
-          <div className="p-4 flex items-center justify-between border-t border-border">
-            <span className="text-foreground">Weekly workout frequency</span>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">{profile?.workout_days || "3-4"} days</span>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </div>
-          </div>
-        </motion.div>
+        </Card>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-card rounded-2xl border border-border overflow-hidden"
-        >
-          <h3 className="text-foreground p-4 border-b border-border">Preferences</h3>
-          <div className="p-4 flex items-center justify-between">
-            <span className="text-foreground">Diet style</span>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground capitalize">{profile?.diet_style || "balanced"}</span>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
+        <Card delay={0.1}>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Preferences</h3>
+          <div className="space-y-0">
+            <div className="flex items-center justify-between py-2.5">
+              <span className="text-sm text-foreground">Diet style</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm text-muted-foreground capitalize">{profile?.diet_style || "balanced"}</span>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </div>
+            </div>
+            <div className="flex items-center justify-between py-2.5 border-t border-border">
+              <span className="text-sm text-foreground">Cooking time</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm text-muted-foreground">{profile?.cooking_time || "30 min"}</span>
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </div>
             </div>
           </div>
-          <div className="p-4 flex items-center justify-between border-t border-border">
-            <span className="text-foreground">Cooking time</span>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">{profile?.cooking_time || "30 min"}</span>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </div>
-          </div>
-        </motion.div>
+        </Card>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-card rounded-2xl border border-border overflow-hidden"
-        >
-          <h3 className="text-foreground p-4 border-b border-border">Settings</h3>
-          <div className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Bell className="w-5 h-5 text-muted-foreground" />
-              <span className="text-foreground">Notifications</span>
+        <Card delay={0.15}>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Settings</h3>
+          <div className="flex items-center justify-between py-1">
+            <div className="flex items-center gap-2.5">
+              <Bell className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-foreground">Notifications</span>
             </div>
-            <button
+            <motion.button
               onClick={toggleNotifications}
-              className={`w-12 h-7 rounded-full transition-colors ${
+              whileTap={{ scale: 0.95 }}
+              className={`w-12 h-7 rounded-full transition-colors duration-200 p-0.5 ${
                 profile?.notifications_enabled ? "bg-primary" : "bg-muted"
               }`}
             >
-              <div
-                className={`w-5 h-5 bg-white rounded-full transition-transform ${
-                  profile?.notifications_enabled ? "translate-x-6" : "translate-x-1"
-                }`}
+              <motion.div
+                className="w-6 h-6 bg-white rounded-full shadow-sm"
+                animate={{ x: profile?.notifications_enabled ? 20 : 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 35 }}
               />
-            </button>
+            </motion.button>
           </div>
-        </motion.div>
+        </Card>
 
-        <motion.button
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          onClick={handleSignOut}
-          className="w-full bg-destructive text-destructive-foreground py-4 rounded-2xl flex items-center justify-center gap-2"
+          transition={{ delay: 0.25 }}
         >
-          <LogOut className="w-5 h-5" />
-          Sign Out
-        </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={handleSignOut}
+            className="w-full bg-destructive/10 text-destructive py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-destructive/15 transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            Sign Out
+          </motion.button>
+        </motion.div>
       </div>
     </div>
   );

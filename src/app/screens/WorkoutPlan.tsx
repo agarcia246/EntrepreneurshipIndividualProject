@@ -1,9 +1,16 @@
-import { ArrowLeft, Clock, Repeat, Loader2, Plus } from "lucide-react";
-import { useNavigate } from "react-router";
+import { Clock, Repeat, Plus, Check } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { useWorkouts } from "@/lib/hooks";
+import { toast } from "sonner";
 import type { Json } from "@/lib/database.types";
+import {
+  PageHeader,
+  SkeletonScreen,
+  EmptyState,
+  Card,
+  PrimaryButton,
+} from "../components/shared";
 
 interface Exercise {
   name: string;
@@ -12,7 +19,6 @@ interface Exercise {
 }
 
 export function WorkoutPlan() {
-  const navigate = useNavigate();
   const { workouts, loading, add, markComplete } = useWorkouts();
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [completed, setCompleted] = useState<number[]>([]);
@@ -31,6 +37,9 @@ export function WorkoutPlan() {
   const handleMarkComplete = async () => {
     if (selectedWorkout) {
       await markComplete(selectedWorkout.id);
+      toast.success("Workout completed! Great job!", {
+        description: selectedWorkout.title,
+      });
     }
   };
 
@@ -48,146 +57,131 @@ export function WorkoutPlan() {
       date: new Date().toISOString().split("T")[0],
       completed: false,
     });
+    toast.success("Workout added!");
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-      </div>
-    );
-  }
+  if (loading) return <SkeletonScreen cards={4} />;
 
   return (
-    <div className="min-h-screen bg-background px-6 pt-8 pb-6">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
-      >
-        <button onClick={() => navigate("/app")} className="mb-4">
-          <ArrowLeft className="w-6 h-6 text-foreground" />
-        </button>
-        <h1 className="text-3xl text-foreground mb-1">Workout Plan</h1>
-        <p className="text-muted-foreground">
-          {workouts.length > 0 ? "Choose your workout for today" : "No workouts planned yet"}
-        </p>
-      </motion.div>
+    <div className="min-h-screen bg-background px-5 pt-8 pb-6">
+      <PageHeader
+        title="Workout Plan"
+        subtitle={workouts.length > 0 ? "Choose your workout for today" : "No workouts planned yet"}
+        back="/app"
+      />
 
       {workouts.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center py-16"
-        >
-          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-            <Plus className="w-8 h-8 text-muted-foreground" />
-          </div>
-          <p className="text-muted-foreground mb-4">Add your first workout to get started</p>
-          <button
-            onClick={handleAddSample}
-            className="bg-primary text-primary-foreground px-6 py-3 rounded-2xl"
-          >
-            Add Sample Workout
-          </button>
-        </motion.div>
+        <EmptyState
+          icon={Plus}
+          title="No workouts yet"
+          description="Add your first workout to get started on your fitness journey"
+          action={
+            <PrimaryButton onClick={handleAddSample} className="w-auto px-6">
+              Add Sample Workout
+            </PrimaryButton>
+          }
+        />
       ) : (
         <>
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+          <div className="flex gap-2 mb-5 overflow-x-auto pb-2 -mx-1 px-1">
             {workouts.map((workout, i) => (
-              <button
+              <motion.button
                 key={workout.id}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => { setSelectedIdx(i); setCompleted([]); }}
-                className={`px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+                className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-all ${
                   selectedIdx === i
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
+                    ? "text-white shadow-[var(--shadow-card)]"
+                    : "bg-card text-muted-foreground shadow-[var(--shadow-card)]"
                 }`}
+                style={selectedIdx === i ? { background: "var(--gradient-primary)" } : undefined}
               >
                 {workout.title}
-              </button>
+              </motion.button>
             ))}
           </div>
 
           {selectedWorkout && (
             <motion.div
               key={selectedWorkout.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-4"
+              className="space-y-3"
             >
-              <div className="bg-card rounded-3xl p-6 border border-border">
-                <h2 className="text-2xl text-foreground mb-2">{selectedWorkout.title}</h2>
-                <p className="text-muted-foreground mb-4">{selectedWorkout.muscle_group}</p>
+              <Card>
+                <div className="flex items-start justify-between mb-1">
+                  <h2 className="text-xl font-bold text-foreground">{selectedWorkout.title}</h2>
+                  {selectedWorkout.completed && (
+                    <span className="text-xs font-semibold bg-primary/10 text-primary px-2.5 py-1 rounded-full flex items-center gap-1">
+                      <Check className="w-3 h-3" /> Done
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">{selectedWorkout.muscle_group}</p>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
+                  <div className="flex items-center gap-1.5 bg-muted px-2.5 py-1 rounded-full">
+                    <Clock className="w-3.5 h-3.5" />
                     <span>{selectedWorkout.duration}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Repeat className="w-4 h-4" />
+                  <div className="flex items-center gap-1.5 bg-muted px-2.5 py-1 rounded-full">
+                    <Repeat className="w-3.5 h-3.5" />
                     <span>{exercises.length} exercises</span>
                   </div>
                 </div>
-                {selectedWorkout.completed && (
-                  <span className="inline-block mt-3 text-xs bg-primary/10 text-primary px-3 py-1 rounded-full">
-                    Completed
-                  </span>
-                )}
-              </div>
+              </Card>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {exercises.map((exercise, index) => (
-                  <motion.div
+                  <motion.button
                     key={index}
-                    initial={{ opacity: 0, x: -20 }}
+                    initial={{ opacity: 0, x: -15 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className={`rounded-2xl p-5 border-2 transition-all ${
+                    transition={{ delay: index * 0.04 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => toggleComplete(index)}
+                    className={`w-full rounded-xl p-4 flex items-center gap-3.5 transition-all ${
                       completed.includes(index)
-                        ? "border-primary bg-primary/5"
-                        : "border-border bg-card"
+                        ? "bg-primary/5 border-2 border-primary shadow-[var(--shadow-card)]"
+                        : "bg-card border border-transparent shadow-[var(--shadow-card)]"
                     }`}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-foreground mb-1">{exercise.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {exercise.sets} × {exercise.reps}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => toggleComplete(index)}
-                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                          completed.includes(index)
-                            ? "border-primary bg-primary"
-                            : "border-border"
-                        }`}
-                      >
-                        {completed.includes(index) && (
-                          <div className="w-3 h-3 bg-white rounded-full" />
-                        )}
-                      </button>
+                    <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                      completed.includes(index)
+                        ? "border-primary bg-primary"
+                        : "border-border"
+                    }`}>
+                      {completed.includes(index) && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        >
+                          <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                        </motion.div>
+                      )}
                     </div>
-                  </motion.div>
+                    <div className="flex-1 text-left">
+                      <h3 className={`font-medium text-sm ${completed.includes(index) ? "text-foreground" : "text-foreground"}`}>
+                        {exercise.name}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">{exercise.sets} × {exercise.reps}</p>
+                    </div>
+                    <span className="text-xs text-muted-foreground font-medium">
+                      {index + 1}/{exercises.length}
+                    </span>
+                  </motion.button>
                 ))}
               </div>
 
-              <div className="space-y-3 pt-4">
+              <div className="space-y-2.5 pt-2">
                 {!selectedWorkout.completed && (
-                  <button
-                    onClick={handleMarkComplete}
-                    className="w-full bg-primary text-primary-foreground py-4 rounded-2xl"
-                  >
+                  <PrimaryButton onClick={handleMarkComplete}>
                     Mark Workout Complete
-                  </button>
+                  </PrimaryButton>
                 )}
-                <button
-                  onClick={handleAddSample}
-                  className="w-full border-2 border-border bg-card text-foreground py-4 rounded-2xl"
-                >
+                <PrimaryButton variant="outline" onClick={handleAddSample}>
                   Add Another Workout
-                </button>
+                </PrimaryButton>
               </div>
             </motion.div>
           )}

@@ -1,13 +1,26 @@
 import {
   TrendingUp, TrendingDown, Dumbbell, UtensilsCrossed, CheckCircle,
-  Flame, Loader2, Droplets, Moon, Beef, Cookie, ArrowRight,
-  Trophy, Calendar, Target, Minus,
+  Flame, Droplets, Moon, Beef, Cookie, ArrowRight,
+  Trophy, Calendar, Target, Minus, Loader2,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useDetailedStats, useWeeklyCheckIn } from "@/lib/hooks";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 import type { LucideIcon } from "lucide-react";
+import {
+  BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area,
+} from "recharts";
+import {
+  PageHeader,
+  SkeletonScreen,
+  GradientCard,
+  Card,
+  AnimatedNumber,
+  StatPill,
+  PrimaryButton,
+} from "../components/shared";
 
 const iconMap: Record<string, LucideIcon> = {
   droplets: Droplets, moon: Moon, beef: Beef,
@@ -18,27 +31,46 @@ const iconMap: Record<string, LucideIcon> = {
 function TrendBadge({ current, previous, unit = "%" }: { current: number; previous: number; unit?: string }) {
   const diff = current - previous;
   if (diff === 0) return (
-    <span className="text-xs text-muted-foreground flex items-center gap-0.5">
-      <Minus className="w-3 h-3" /> No change
+    <span className="text-[10px] text-muted-foreground flex items-center gap-0.5 bg-muted px-2 py-0.5 rounded-full">
+      <Minus className="w-3 h-3" /> Same
     </span>
   );
   const positive = diff > 0;
   return (
-    <span className={`text-xs flex items-center gap-0.5 ${positive ? "text-primary" : "text-destructive"}`}>
+    <span className={`text-[10px] flex items-center gap-0.5 px-2 py-0.5 rounded-full font-medium ${
+      positive ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"
+    }`}>
       {positive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-      {positive ? "+" : ""}{diff}{unit} vs last week
+      {positive ? "+" : ""}{diff}{unit}
     </span>
   );
 }
 
-function MiniBar({ value, max, color = "bg-primary" }: { value: number; max: number; color?: string }) {
+function MiniBar({ value, max, active = true }: { value: number; max: number; active?: boolean }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   return (
     <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-      <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${pct}%` }} />
+      <motion.div
+        initial={{ width: 0 }}
+        animate={{ width: `${pct}%` }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+        className={`h-full rounded-full ${active ? "bg-primary" : "bg-muted-foreground/30"}`}
+      />
     </div>
   );
 }
+
+const chartTooltipStyle = {
+  contentStyle: {
+    background: "var(--card)",
+    border: "1px solid var(--border)",
+    borderRadius: "0.75rem",
+    boxShadow: "var(--shadow-elevated)",
+    fontSize: "12px",
+    padding: "8px 12px",
+  },
+  cursor: { fill: "rgba(0,0,0,0.03)" },
+};
 
 export function Progress() {
   const navigate = useNavigate();
@@ -66,340 +98,278 @@ export function Progress() {
       was_difficult: wasDifficult,
     });
     setSaving(false);
+    toast.success("Reflection saved!");
   };
 
-  if (loading || !data) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-      </div>
-    );
-  }
+  if (loading || !data) return <SkeletonScreen cards={5} />;
 
   const { days, habitBreakdowns, weekComparison, totals } = data;
-  const maxCalories = Math.max(...days.map((d) => d.calories), 1);
+
+  const habitChartData = days.map(d => ({
+    name: d.dayLabel.split(" ")[0],
+    rate: d.habitRate,
+  }));
+
+  const nutritionChartData = days.map(d => ({
+    name: d.dayLabel.split(" ")[0],
+    calories: d.calories,
+    protein: d.protein,
+  }));
 
   return (
-    <div className="min-h-screen bg-background px-6 pt-8 pb-6">
-      {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-        <h1 className="text-3xl text-foreground mb-1">Progress</h1>
-        <p className="text-muted-foreground">Last 14 days at a glance</p>
-      </motion.div>
+    <div className="min-h-screen bg-background px-5 pt-8 pb-6">
+      <PageHeader title="Progress" subtitle="Last 14 days at a glance" />
 
-      {/* ── Hero Stats Row ──────────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-        className="bg-primary rounded-3xl p-6 text-white mb-6"
-      >
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <Flame className="w-6 h-6 mx-auto mb-1 opacity-80" />
-            <p className="text-3xl">{totals.activeDayStreak}</p>
-            <p className="text-xs opacity-70">day streak</p>
-          </div>
-          <div>
-            <Dumbbell className="w-6 h-6 mx-auto mb-1 opacity-80" />
-            <p className="text-3xl">{totals.workoutsCompleted}</p>
-            <p className="text-xs opacity-70">workouts</p>
-          </div>
-          <div>
-            <Target className="w-6 h-6 mx-auto mb-1 opacity-80" />
-            <p className="text-3xl">{totals.habitsCompleted}</p>
-            <p className="text-xs opacity-70">habits hit</p>
-          </div>
+      <GradientCard gradient="var(--gradient-hero)" className="mb-4">
+        <div className="grid grid-cols-3 gap-3 text-center">
+          <StatPill icon={Flame} value={totals.activeDayStreak} label="day streak" />
+          <StatPill icon={Dumbbell} value={totals.workoutsCompleted} label="workouts" />
+          <StatPill icon={Target} value={totals.habitsCompleted} label="habits hit" />
         </div>
-      </motion.div>
+      </GradientCard>
 
-      {/* ── Daily Habit Completion Chart ─────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-        className="bg-card rounded-3xl p-6 border border-border mb-4"
-      >
-        <h3 className="text-foreground mb-1 flex items-center gap-2">
-          <CheckCircle className="w-5 h-5 text-primary" />
+      <Card delay={0.05} className="mb-3">
+        <h3 className="text-sm font-semibold text-foreground mb-0.5 flex items-center gap-2">
+          <CheckCircle className="w-4 h-4 text-primary" />
           Daily Habit Completion
         </h3>
-        <p className="text-sm text-muted-foreground mb-4">Percentage of habits completed each day</p>
-        <div className="flex items-end gap-[3px] h-28">
-          {days.map((day) => (
-            <div key={day.date} className="flex flex-col items-center flex-1 gap-1">
-              <span className="text-[9px] text-muted-foreground">{day.habitRate > 0 ? `${day.habitRate}` : ""}</span>
-              <div className="w-full bg-muted rounded-t-sm relative" style={{ height: "100%" }}>
-                <div
-                  className={`absolute bottom-0 w-full rounded-t-sm transition-all ${
-                    day.habitRate === 100 ? "bg-primary" : day.habitRate >= 67 ? "bg-primary/70" : day.habitRate > 0 ? "bg-primary/40" : "bg-muted"
-                  }`}
-                  style={{ height: `${day.habitRate}%` }}
-                />
+        <p className="text-xs text-muted-foreground mb-3">% of habits completed each day</p>
+        <div className="h-36 -mx-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={habitChartData} barSize={12}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                {...chartTooltipStyle}
+                formatter={(value: number) => [`${value}%`, "Completion"]}
+              />
+              <Bar
+                dataKey="rate"
+                fill="var(--primary)"
+                radius={[4, 4, 0, 0]}
+                animationDuration={800}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </Card>
+
+      <Card delay={0.1} className="mb-3">
+        <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-primary" />
+          Week-over-Week
+        </h3>
+        <div className="space-y-3.5">
+          {[
+            { label: "Habit completion", c: weekComparison.week2HabitRate, p: weekComparison.week1HabitRate, max: 100, unit: "%" },
+            { label: "Workouts", c: weekComparison.week2Workouts, p: weekComparison.week1Workouts, max: 7, unit: "" },
+            { label: "Avg daily calories", c: weekComparison.week2AvgCalories, p: weekComparison.week1AvgCalories, max: 3000, unit: " cal" },
+            { label: "Avg daily protein", c: weekComparison.week2AvgProtein, p: weekComparison.week1AvgProtein, max: 200, unit: "g" },
+          ].map((item) => (
+            <div key={item.label}>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-medium text-foreground">{item.label}</span>
+                <TrendBadge current={item.c} previous={item.p} unit={item.unit} />
               </div>
-              <span className="text-[9px] text-muted-foreground leading-none">{day.dayLabel.split(" ")[0]}</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                    <span>Prev week</span>
+                    <span>{item.p.toLocaleString()}{item.unit}</span>
+                  </div>
+                  <MiniBar value={item.p} max={item.max} active={false} />
+                </div>
+                <div>
+                  <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                    <span>This week</span>
+                    <span className="font-semibold text-foreground">{item.c.toLocaleString()}{item.unit}</span>
+                  </div>
+                  <MiniBar value={item.c} max={item.max} />
+                </div>
+              </div>
             </div>
           ))}
         </div>
-        <div className="flex items-center gap-4 mt-3 text-[10px] text-muted-foreground">
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-primary inline-block" /> 100%</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-primary/70 inline-block" /> 67-99%</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-primary/40 inline-block" /> 1-66%</span>
-        </div>
-      </motion.div>
+      </Card>
 
-      {/* ── Week-over-Week Comparison ────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        className="bg-card rounded-3xl p-6 border border-border mb-4"
-      >
-        <h3 className="text-foreground mb-4 flex items-center gap-2">
-          <Calendar className="w-5 h-5 text-primary" />
-          Week-over-Week
-        </h3>
-        <div className="space-y-4">
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm text-foreground">Habit completion</span>
-              <TrendBadge current={weekComparison.week2HabitRate} previous={weekComparison.week1HabitRate} />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                  <span>Week 1</span><span>{weekComparison.week1HabitRate}%</span>
-                </div>
-                <MiniBar value={weekComparison.week1HabitRate} max={100} color="bg-muted-foreground/40" />
-              </div>
-              <div>
-                <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                  <span>Week 2</span><span>{weekComparison.week2HabitRate}%</span>
-                </div>
-                <MiniBar value={weekComparison.week2HabitRate} max={100} />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm text-foreground">Workouts</span>
-              <TrendBadge current={weekComparison.week2Workouts} previous={weekComparison.week1Workouts} unit="" />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                  <span>Week 1</span><span>{weekComparison.week1Workouts}</span>
-                </div>
-                <MiniBar value={weekComparison.week1Workouts} max={7} color="bg-muted-foreground/40" />
-              </div>
-              <div>
-                <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                  <span>Week 2</span><span>{weekComparison.week2Workouts}</span>
-                </div>
-                <MiniBar value={weekComparison.week2Workouts} max={7} />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm text-foreground">Avg daily calories</span>
-              <TrendBadge current={weekComparison.week2AvgCalories} previous={weekComparison.week1AvgCalories} unit=" cal" />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                  <span>Week 1</span><span>{weekComparison.week1AvgCalories.toLocaleString()}</span>
-                </div>
-                <MiniBar value={weekComparison.week1AvgCalories} max={3000} color="bg-muted-foreground/40" />
-              </div>
-              <div>
-                <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                  <span>Week 2</span><span>{weekComparison.week2AvgCalories.toLocaleString()}</span>
-                </div>
-                <MiniBar value={weekComparison.week2AvgCalories} max={3000} />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm text-foreground">Avg daily protein</span>
-              <TrendBadge current={weekComparison.week2AvgProtein} previous={weekComparison.week1AvgProtein} unit="g" />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                  <span>Week 1</span><span>{weekComparison.week1AvgProtein}g</span>
-                </div>
-                <MiniBar value={weekComparison.week1AvgProtein} max={200} color="bg-muted-foreground/40" />
-              </div>
-              <div>
-                <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                  <span>Week 2</span><span>{weekComparison.week2AvgProtein}g</span>
-                </div>
-                <MiniBar value={weekComparison.week2AvgProtein} max={200} />
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* ── Per-Habit Breakdown ──────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-        className="bg-card rounded-3xl p-6 border border-border mb-4"
-      >
-        <h3 className="text-foreground mb-4 flex items-center gap-2">
-          <Target className="w-5 h-5 text-primary" />
+      <Card delay={0.15} className="mb-3">
+        <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+          <Target className="w-4 h-4 text-primary" />
           Habit Breakdown
         </h3>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {habitBreakdowns.map((h) => {
             const Icon = iconMap[h.icon] || CheckCircle;
             return (
               <div key={h.id}>
-                <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
-                    <Icon className="w-4 h-4 text-primary" />
-                    <span className="text-sm text-foreground">{h.label}</span>
+                    <Icon className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-xs font-medium text-foreground">{h.label}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {h.currentStreak > 0 && (
-                      <span className="text-xs text-orange-500 flex items-center gap-0.5">
+                      <span className="text-[10px] text-orange-500 flex items-center gap-0.5 font-medium">
                         <Flame className="w-3 h-3" />{h.currentStreak}d
                       </span>
                     )}
-                    <span className="text-sm text-foreground">{h.rate}%</span>
+                    <span className="text-xs font-semibold text-foreground">{h.rate}%</span>
                   </div>
                 </div>
                 <MiniBar value={h.completedDays} max={h.totalDays} />
-                <p className="text-[10px] text-muted-foreground mt-1">
+                <p className="text-[10px] text-muted-foreground mt-0.5">
                   {h.completedDays} of {h.totalDays} days
                 </p>
               </div>
             );
           })}
         </div>
-      </motion.div>
+      </Card>
 
-      {/* ── Calorie & Protein Trend ─────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-        className="bg-card rounded-3xl p-6 border border-border mb-4"
-      >
-        <h3 className="text-foreground mb-1 flex items-center gap-2">
-          <UtensilsCrossed className="w-5 h-5 text-accent" />
+      <Card delay={0.2} className="mb-3">
+        <h3 className="text-sm font-semibold text-foreground mb-0.5 flex items-center gap-2">
+          <UtensilsCrossed className="w-4 h-4 text-accent" />
           Nutrition Trend
         </h3>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
           <span>Avg {totals.avgDailyCalories.toLocaleString()} cal/day</span>
-          <span>·</span>
+          <span className="text-border">|</span>
           <span>Avg {totals.avgDailyProtein}g protein/day</span>
         </div>
-        <div className="flex items-end gap-[3px] h-24">
-          {days.map((day) => (
-            <div key={day.date} className="flex flex-col items-center flex-1 gap-1">
-              <div className="w-full bg-muted rounded-t-sm relative" style={{ height: "100%" }}>
-                <div
-                  className="absolute bottom-0 w-full bg-accent rounded-t-sm transition-all"
-                  style={{ height: `${maxCalories > 0 ? (day.calories / maxCalories) * 100 : 0}%` }}
-                />
-              </div>
-              <span className="text-[9px] text-muted-foreground leading-none">{day.dayLabel.split(" ")[0]}</span>
-            </div>
-          ))}
+        <div className="h-32 -mx-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={nutritionChartData}>
+              <defs>
+                <linearGradient id="calGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.3} />
+                  <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                {...chartTooltipStyle}
+                formatter={(value: number, name: string) => [
+                  name === "calories" ? `${value} cal` : `${value}g`,
+                  name === "calories" ? "Calories" : "Protein",
+                ]}
+              />
+              <Area
+                type="monotone"
+                dataKey="calories"
+                stroke="var(--accent)"
+                fill="url(#calGrad)"
+                strokeWidth={2}
+                animationDuration={1000}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
-        <p className="text-[10px] text-muted-foreground mt-2">Daily calorie intake — taller = more calories</p>
-      </motion.div>
+      </Card>
 
-      {/* ── Summary Cards ───────────────────────────────────── */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-        className="grid grid-cols-2 gap-3 mb-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+        className="grid grid-cols-2 gap-3 mb-3"
       >
-        <div className="bg-card rounded-2xl p-4 border border-border">
-          <div className="flex items-center gap-2 mb-2">
-            <Dumbbell className="w-4 h-4 text-primary" />
-            <span className="text-xs text-muted-foreground">Workouts</span>
+        <div className="bg-card rounded-xl p-4 shadow-[var(--shadow-card)]">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Dumbbell className="w-3.5 h-3.5 text-primary" />
+            <span className="text-[10px] text-muted-foreground font-medium">Workouts</span>
           </div>
-          <p className="text-2xl text-foreground">{totals.workoutsCompleted}<span className="text-sm text-muted-foreground">/{totals.workoutsTotal}</span></p>
-          <p className="text-xs text-muted-foreground">completed</p>
+          <p className="text-xl font-bold text-foreground">
+            <AnimatedNumber value={totals.workoutsCompleted} />
+            <span className="text-sm font-normal text-muted-foreground">/{totals.workoutsTotal}</span>
+          </p>
+          <p className="text-[10px] text-muted-foreground">completed</p>
         </div>
-        <div className="bg-card rounded-2xl p-4 border border-border">
-          <div className="flex items-center gap-2 mb-2">
-            <UtensilsCrossed className="w-4 h-4 text-accent" />
-            <span className="text-xs text-muted-foreground">Meals Logged</span>
+        <div className="bg-card rounded-xl p-4 shadow-[var(--shadow-card)]">
+          <div className="flex items-center gap-1.5 mb-2">
+            <UtensilsCrossed className="w-3.5 h-3.5 text-accent" />
+            <span className="text-[10px] text-muted-foreground font-medium">Meals Logged</span>
           </div>
-          <p className="text-2xl text-foreground">{totals.mealsLogged}</p>
-          <p className="text-xs text-muted-foreground">in 14 days</p>
+          <p className="text-xl font-bold text-foreground">
+            <AnimatedNumber value={totals.mealsLogged} />
+          </p>
+          <p className="text-[10px] text-muted-foreground">in 14 days</p>
         </div>
       </motion.div>
 
-      {/* ── Best Day ────────────────────────────────────────── */}
       {totals.bestDay && totals.bestDay.habitRate > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-          className="bg-primary/5 rounded-2xl p-5 border-2 border-primary/20 mb-4"
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <Trophy className="w-5 h-5 text-primary" />
-            <span className="text-foreground">Best Day</span>
+        <Card delay={0.3} className="mb-3 border-2 border-amber-400/20 bg-amber-50/50">
+          <div className="flex items-center gap-2 mb-1.5">
+            <Trophy className="w-4 h-4 text-amber-500" />
+            <span className="text-sm font-semibold text-foreground">Best Day</span>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             <strong className="text-foreground">{totals.bestDay.dayLabel}</strong> — {totals.bestDay.habitRate}% habits, {totals.bestDay.workoutsDone} workout{totals.bestDay.workoutsDone !== 1 ? "s" : ""}, {totals.bestDay.calories.toLocaleString()} cal
           </p>
-        </motion.div>
+        </Card>
       )}
 
-      {/* ── Weekly Check-In CTA ─────────────────────────────── */}
       <motion.button
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35 }}
+        whileTap={{ scale: 0.98 }}
         onClick={() => navigate("/app/feedback")}
-        className="w-full bg-card rounded-2xl p-5 border border-border mb-4 flex items-center justify-between"
+        className="w-full bg-card rounded-xl p-4 shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] mb-3 flex items-center justify-between transition-shadow"
       >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
             <TrendingUp className="w-5 h-5 text-accent" />
           </div>
           <div className="text-left">
-            <p className="text-foreground">Weekly Check-In</p>
-            <p className="text-xs text-muted-foreground">{checkIn ? "Update your reflection" : "Reflect on this week"}</p>
+            <p className="text-sm font-semibold text-foreground">Weekly Check-In</p>
+            <p className="text-[10px] text-muted-foreground">{checkIn ? "Update your reflection" : "Reflect on this week"}</p>
           </div>
         </div>
-        <ArrowRight className="w-5 h-5 text-muted-foreground" />
+        <ArrowRight className="w-4 h-4 text-muted-foreground" />
       </motion.button>
 
-      {/* ── Weekly Reflection ───────────────────────────────── */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-        className="bg-accent/10 rounded-3xl p-6 border border-accent/20"
-      >
-        <h3 className="text-foreground mb-3">Weekly Reflection</h3>
+      <Card delay={0.4} className="bg-accent/5 border border-accent/10">
+        <h3 className="text-sm font-semibold text-foreground mb-3">Weekly Reflection</h3>
         <div className="space-y-3">
           <div>
-            <label className="block text-sm text-muted-foreground mb-2">What went well this week?</label>
+            <label className="block text-xs font-medium text-muted-foreground mb-1.5">What went well this week?</label>
             <textarea
               value={wentWell}
               onChange={(e) => setWentWell(e.target.value)}
               placeholder="Share your wins..."
-              className="w-full p-4 rounded-xl border border-border bg-card text-foreground resize-none h-24"
+              className="w-full p-3 rounded-lg border border-border bg-card text-foreground text-sm resize-none h-20 shadow-[var(--shadow-card)]"
             />
           </div>
           <div>
-            <label className="block text-sm text-muted-foreground mb-2">What was difficult?</label>
+            <label className="block text-xs font-medium text-muted-foreground mb-1.5">What was difficult?</label>
             <textarea
               value={wasDifficult}
               onChange={(e) => setWasDifficult(e.target.value)}
               placeholder="What challenges did you face?"
-              className="w-full p-4 rounded-xl border border-border bg-card text-foreground resize-none h-24"
+              className="w-full p-3 rounded-lg border border-border bg-card text-foreground text-sm resize-none h-20 shadow-[var(--shadow-card)]"
             />
           </div>
         </div>
-        <button
-          onClick={handleSaveReflection}
-          disabled={saving}
-          className="w-full mt-4 bg-accent text-accent-foreground py-3 rounded-xl disabled:opacity-60 flex items-center justify-center gap-2"
-        >
-          {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-          Save Reflection
-        </button>
-      </motion.div>
+        <div className="mt-3">
+          <PrimaryButton
+            onClick={handleSaveReflection}
+            loading={saving}
+            variant="solid"
+          >
+            Save Reflection
+          </PrimaryButton>
+        </div>
+      </Card>
     </div>
   );
 }

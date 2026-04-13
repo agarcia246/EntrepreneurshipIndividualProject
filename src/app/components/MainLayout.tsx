@@ -1,6 +1,6 @@
 import { Outlet, useNavigate, useLocation } from "react-router";
 import { Home, Calendar, CheckSquare, TrendingUp, User } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 
 const navItems = [
   { path: "/app", icon: Home, label: "Home" },
@@ -16,40 +16,64 @@ export function MainLayout() {
 
   return (
     <div className="h-screen w-full bg-background flex flex-col">
-      <div className="flex-1 overflow-y-auto pb-20">
-        <Outlet />
+      <div className="flex-1 overflow-y-auto pb-24">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border">
-        <div className="flex items-center justify-around px-4 py-3">
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-50"
+        style={{
+          background: "rgba(255, 255, 255, 0.85)",
+          backdropFilter: "blur(20px) saturate(180%)",
+          WebkitBackdropFilter: "blur(20px) saturate(180%)",
+          boxShadow: "var(--shadow-nav)",
+        }}
+      >
+        <div className="max-w-[430px] mx-auto flex items-center justify-around px-2 pt-2 pb-5">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
             return (
-              <button
+              <motion.button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className="flex flex-col items-center gap-1 relative py-2 px-4"
+                whileTap={{ scale: 0.85 }}
+                className="flex flex-col items-center gap-0.5 relative py-1.5 px-4 rounded-xl transition-colors"
               >
-                <Icon
-                  className={`w-6 h-6 transition-colors ${
-                    isActive ? "text-primary" : "text-muted-foreground"
-                  }`}
-                />
+                <div className="relative">
+                  {isActive && (
+                    <motion.div
+                      layoutId="navBg"
+                      className="absolute -inset-2 rounded-xl"
+                      style={{ background: "var(--secondary)" }}
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  <Icon
+                    className={`w-[22px] h-[22px] relative z-10 transition-colors duration-200 ${
+                      isActive ? "text-primary" : "text-muted-foreground"
+                    }`}
+                    strokeWidth={isActive ? 2.5 : 1.8}
+                  />
+                </div>
                 <span
-                  className={`text-xs transition-colors ${
-                    isActive ? "text-primary" : "text-muted-foreground"
+                  className={`text-[10px] relative z-10 transition-colors duration-200 ${
+                    isActive ? "text-primary font-semibold" : "text-muted-foreground"
                   }`}
                 >
                   {item.label}
                 </span>
-                {isActive && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary"
-                  />
-                )}
-              </button>
+              </motion.button>
             );
           })}
         </div>

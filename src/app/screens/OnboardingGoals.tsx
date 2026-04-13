@@ -1,14 +1,16 @@
 import { useNavigate } from "react-router";
 import { useState } from "react";
-import { ChevronLeft } from "lucide-react";
+import { Target, Dumbbell, Salad, Flame, RotateCcw, Check } from "lucide-react";
 import { motion } from "motion/react";
+import { OnboardingProgress, PrimaryButton } from "../components/shared";
+import type { LucideIcon } from "lucide-react";
 
-const goals = [
-  { id: "muscle", label: "Build muscle" },
-  { id: "consistent", label: "Stay consistent" },
-  { id: "healthier", label: "Eat healthier" },
-  { id: "fat", label: "Lose fat" },
-  { id: "routine", label: "Improve routine" },
+const goals: { id: string; label: string; icon: LucideIcon; color: string }[] = [
+  { id: "muscle", label: "Build muscle", icon: Dumbbell, color: "bg-blue-500/10 text-blue-600" },
+  { id: "consistent", label: "Stay consistent", icon: Target, color: "bg-green-500/10 text-green-600" },
+  { id: "healthier", label: "Eat healthier", icon: Salad, color: "bg-emerald-500/10 text-emerald-600" },
+  { id: "fat", label: "Lose fat", icon: Flame, color: "bg-orange-500/10 text-orange-600" },
+  { id: "routine", label: "Improve routine", icon: RotateCcw, color: "bg-purple-500/10 text-purple-600" },
 ];
 
 export function OnboardingGoals() {
@@ -30,47 +32,73 @@ export function OnboardingGoals() {
   };
 
   return (
-    <div className="h-screen w-full bg-background flex flex-col px-6 pt-8 pb-8">
-      <button
-        onClick={() => navigate("/onboarding/welcome")}
-        className="self-start mb-8"
-      >
-        <ChevronLeft className="w-6 h-6 text-foreground" />
-      </button>
+    <div className="h-screen w-full bg-background flex flex-col px-6 pt-12 pb-8">
+      <OnboardingProgress step={2} total={4} />
 
       <div className="flex-1 space-y-6">
-        <div>
-          <h1 className="text-2xl text-foreground mb-2">What are your goals?</h1>
-          <p className="text-muted-foreground">Select all that apply</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h1 className="text-2xl font-bold text-foreground mb-1.5 tracking-tight">
+            What are your goals?
+          </h1>
+          <p className="text-muted-foreground text-sm">Select all that apply</p>
+        </motion.div>
 
-        <div className="space-y-3">
-          {goals.map((goal, index) => (
-            <motion.button
-              key={goal.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              onClick={() => toggleGoal(goal.id)}
-              className={`w-full p-5 rounded-2xl border-2 transition-all ${
-                selected.includes(goal.id)
-                  ? "border-primary bg-primary/5"
-                  : "border-border bg-card"
-              }`}
-            >
-              <span className="text-foreground text-lg">{goal.label}</span>
-            </motion.button>
-          ))}
+        <div className="space-y-2.5">
+          {goals.map((goal, index) => {
+            const isSelected = selected.includes(goal.id);
+            const Icon = goal.icon;
+            return (
+              <motion.button
+                key={goal.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.07 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => toggleGoal(goal.id)}
+                className={`w-full p-4 rounded-xl flex items-center gap-3.5 transition-all duration-200 ${
+                  isSelected
+                    ? "bg-primary/5 border-2 border-primary shadow-[var(--shadow-card)]"
+                    : "bg-card border-2 border-transparent shadow-[var(--shadow-card)]"
+                }`}
+              >
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                  isSelected ? "bg-primary text-white" : goal.color
+                } transition-all duration-200`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <span className="text-foreground font-medium flex-1 text-left">{goal.label}</span>
+                <motion.div
+                  initial={false}
+                  animate={{
+                    scale: isSelected ? 1 : 0,
+                    opacity: isSelected ? 1 : 0,
+                  }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  className="w-6 h-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0"
+                >
+                  <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                </motion.div>
+              </motion.button>
+            );
+          })}
         </div>
       </div>
 
-      <button
-        onClick={handleContinue}
-        disabled={selected.length === 0}
-        className="w-full bg-primary text-primary-foreground py-4 rounded-2xl disabled:opacity-50"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
       >
-        Continue
-      </button>
+        <PrimaryButton
+          onClick={handleContinue}
+          disabled={selected.length === 0}
+        >
+          Continue
+        </PrimaryButton>
+      </motion.div>
     </div>
   );
 }

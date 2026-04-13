@@ -1,8 +1,9 @@
-import { Dumbbell, UtensilsCrossed, Loader2 } from "lucide-react";
+import { Dumbbell, UtensilsCrossed } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
+import { PageHeader, SkeletonScreen } from "../components/shared";
 
 interface DayPlan {
   day: string;
@@ -81,61 +82,56 @@ export function WeeklyPlanner() {
 
   useEffect(() => { fetch() }, [fetch]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-      </div>
-    );
-  }
+  if (loading) return <SkeletonScreen cards={5} />;
 
   return (
-    <div className="min-h-screen bg-background px-6 pt-8 pb-6">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
-      >
-        <h1 className="text-3xl text-foreground mb-1">Weekly Plan</h1>
-        <p className="text-muted-foreground">Your schedule for this week</p>
-      </motion.div>
+    <div className="min-h-screen bg-background px-5 pt-8 pb-6">
+      <PageHeader title="Weekly Plan" subtitle="Your schedule for this week" />
 
-      <div className="space-y-3 mb-6">
+      <div className="space-y-2.5 mb-6">
         {days.map((day, index) => (
           <motion.div
             key={day.dateISO}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className={`rounded-2xl p-5 border-2 ${
+            transition={{ delay: index * 0.04, duration: 0.35 }}
+            className={`rounded-xl p-4 transition-all ${
               day.isToday
-                ? "border-primary bg-primary/5"
-                : "border-border bg-card"
+                ? "bg-primary/5 border-2 border-primary shadow-[var(--shadow-card-hover)]"
+                : "bg-card border border-transparent shadow-[var(--shadow-card)]"
             }`}
           >
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-foreground">{day.day}</h3>
-                  {day.isToday && (
-                    <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full">
-                      Today
-                    </span>
-                  )}
+            <div className="flex items-center justify-between mb-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold ${
+                  day.isToday
+                    ? "bg-primary text-white"
+                    : "bg-muted text-muted-foreground"
+                }`}>
+                  {day.day}
                 </div>
-                <p className="text-sm text-muted-foreground">{day.date}</p>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-foreground font-semibold text-sm">{day.date}</span>
+                    {day.isToday && (
+                      <span className="text-[10px] font-semibold bg-primary text-white px-2 py-0.5 rounded-full">
+                        Today
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Dumbbell className="w-4 h-4 text-primary" />
-                <span className="text-sm text-foreground">{day.workoutTitle}</span>
+            <div className="flex gap-4 pl-[52px]">
+              <div className="flex items-center gap-1.5">
+                <Dumbbell className={`w-3.5 h-3.5 ${day.workoutCount > 0 ? "text-primary" : "text-muted-foreground"}`} />
+                <span className="text-xs text-muted-foreground">{day.workoutTitle}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <UtensilsCrossed className="w-4 h-4 text-accent" />
-                <span className="text-sm text-foreground">
-                  {day.mealCount > 0 ? `${day.mealCount} meals planned` : "No meals planned"}
+              <div className="flex items-center gap-1.5">
+                <UtensilsCrossed className={`w-3.5 h-3.5 ${day.mealCount > 0 ? "text-accent" : "text-muted-foreground"}`} />
+                <span className="text-xs text-muted-foreground">
+                  {day.mealCount > 0 ? `${day.mealCount} meals` : "No meals"}
                 </span>
               </div>
             </div>
