@@ -1,4 +1,4 @@
-import { User, Bell, LogOut, ChevronRight } from "lucide-react";
+import { User, Bell, LogOut, ChevronRight, Presentation } from "lucide-react";
 import { motion } from "motion/react";
 import { useNavigate } from "react-router";
 import { useAuth } from "@/lib/auth";
@@ -119,6 +119,16 @@ export function Settings() {
               />
             </motion.button>
           </div>
+          <button
+            onClick={() => navigate("/app/poster")}
+            className="w-full mt-2 pt-3 border-t border-border flex items-center justify-between"
+          >
+            <div className="flex items-center gap-2.5">
+              <Presentation className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-foreground">View Project Poster</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </button>
         </Card>
 
         <motion.div

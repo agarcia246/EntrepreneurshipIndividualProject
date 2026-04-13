@@ -13,6 +13,7 @@ import { HabitTracker } from "./screens/HabitTracker";
 import { Progress } from "./screens/Progress";
 import { Feedback } from "./screens/Feedback";
 import { Settings } from "./screens/Settings";
+import { PosterPage } from "./screens/PosterPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 
 export const router = createHashRouter([
@@ -52,6 +53,7 @@ export const router = createHashRouter([
       { path: "progress", element: <Progress /> },
       { path: "feedback", element: <Feedback /> },
       { path: "settings", element: <Settings /> },
+      { path: "poster", element: <PosterPage /> },
     ],
   },
 ]);
