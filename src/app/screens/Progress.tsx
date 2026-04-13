@@ -60,12 +60,20 @@ function MiniBar({ value, max, active = true }: { value: number; max: number; ac
   );
 }
 
+const COLORS = {
+  primary: "#16a34a",
+  accent: "#0ea5e9",
+  border: "#e2e8f0",
+  muted: "#64748b",
+  card: "#ffffff",
+};
+
 const chartTooltipStyle = {
   contentStyle: {
-    background: "var(--card)",
-    border: "1px solid var(--border)",
+    background: COLORS.card,
+    border: `1px solid ${COLORS.border}`,
     borderRadius: "0.75rem",
-    boxShadow: "var(--shadow-elevated)",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.08)",
     fontSize: "12px",
     padding: "8px 12px",
   },
@@ -137,10 +145,10 @@ export function Progress() {
         <div className="h-36 -mx-2">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={habitChartData} barSize={12}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} vertical={false} />
               <XAxis
                 dataKey="name"
-                tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+                tick={{ fontSize: 10, fill: COLORS.muted }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -150,7 +158,7 @@ export function Progress() {
               />
               <Bar
                 dataKey="rate"
-                fill="var(--primary)"
+                fill={COLORS.primary}
                 radius={[4, 4, 0, 0]}
                 animationDuration={800}
               />
@@ -246,14 +254,14 @@ export function Progress() {
             <AreaChart data={nutritionChartData}>
               <defs>
                 <linearGradient id="calGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
+                  <stop offset="0%" stopColor={COLORS.accent} stopOpacity={0.3} />
+                  <stop offset="100%" stopColor={COLORS.accent} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke={COLORS.border} vertical={false} />
               <XAxis
                 dataKey="name"
-                tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+                tick={{ fontSize: 10, fill: COLORS.muted }}
                 axisLine={false}
                 tickLine={false}
               />
@@ -267,7 +275,7 @@ export function Progress() {
               <Area
                 type="monotone"
                 dataKey="calories"
-                stroke="var(--accent)"
+                stroke={COLORS.accent}
                 fill="url(#calGrad)"
                 strokeWidth={2}
                 animationDuration={1000}
