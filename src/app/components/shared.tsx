@@ -1,5 +1,6 @@
-import { motion, useSpring, useTransform, useMotionValue, animate } from "motion/react";
+import { motion, useTransform, useMotionValue, animate } from "motion/react";
 import { useEffect, useRef } from "react";
+import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { ChevronLeft } from "lucide-react";
 import { useNavigate } from "react-router";
@@ -13,7 +14,7 @@ export function PageHeader({
   title: string;
   subtitle?: string;
   back?: string;
-  action?: React.ReactNode;
+  action?: ReactNode;
 }) {
   const navigate = useNavigate();
   return (
@@ -28,6 +29,7 @@ export function PageHeader({
           {back && (
             <button
               onClick={() => navigate(back)}
+              aria-label="Go back"
               className="w-10 h-10 rounded-xl bg-card flex items-center justify-center shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] transition-shadow active:scale-95"
             >
               <ChevronLeft className="w-5 h-5 text-foreground" />
@@ -74,7 +76,7 @@ export function AnimatedNumber({
     return unsubscribe;
   }, [rounded, suffix]);
 
-  return <span ref={ref} className={className}>{Math.round(value).toLocaleString()}{suffix}</span>;
+  return <span ref={ref} className={className}>0{suffix}</span>;
 }
 
 export function AnimatedProgress({
@@ -141,7 +143,7 @@ export function EmptyState({
   icon: LucideIcon;
   title: string;
   description: string;
-  action?: React.ReactNode;
+  action?: ReactNode;
 }) {
   return (
     <motion.div
@@ -165,13 +167,11 @@ export function StatPill({
   label,
   value,
   suffix = "",
-  color = "text-primary",
 }: {
   icon: LucideIcon;
   label: string;
   value: number;
   suffix?: string;
-  color?: string;
 }) {
   return (
     <div className="flex flex-col items-center gap-1.5">
@@ -190,7 +190,7 @@ export function GradientCard({
   className = "",
   delay = 0,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   gradient?: string;
   className?: string;
   delay?: number;
@@ -214,7 +214,7 @@ export function Card({
   delay = 0,
   onClick,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
   delay?: number;
   onClick?: () => void;
@@ -261,7 +261,7 @@ export function PrimaryButton({
   className = "",
   type = "button",
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   onClick?: () => void;
   disabled?: boolean;
   loading?: boolean;

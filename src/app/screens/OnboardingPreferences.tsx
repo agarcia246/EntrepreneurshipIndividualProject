@@ -110,6 +110,9 @@ export function OnboardingPreferences() {
           >
             <span className="text-foreground text-sm font-semibold">Enable notifications</span>
             <motion.button
+              role="switch"
+              aria-checked={notifications}
+              aria-label="Enable notifications"
               onClick={() => setNotifications(!notifications)}
               className={`w-12 h-7 rounded-full transition-colors duration-200 p-0.5 ${
                 notifications ? "bg-primary" : "bg-muted"

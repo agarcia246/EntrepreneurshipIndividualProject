@@ -70,7 +70,7 @@ export function Home() {
         </GradientCard>
 
         {todayWorkout ? (
-          <Card delay={0.1} onClick={() => navigate("/app/workout")}>
+          <Card delay={0.1}>
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
@@ -217,6 +217,8 @@ export function Home() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setShowQuickAdd(!showQuickAdd)}
+        aria-label={showQuickAdd ? "Close quick actions" : "Open quick actions"}
+        aria-expanded={showQuickAdd}
         className="fixed bottom-28 right-5 w-14 h-14 rounded-full flex items-center justify-center shadow-[var(--shadow-elevated)] z-40"
         style={{ background: "var(--gradient-primary)" }}
       >

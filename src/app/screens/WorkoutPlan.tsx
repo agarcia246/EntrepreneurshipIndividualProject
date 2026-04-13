@@ -161,7 +161,7 @@ export function WorkoutPlan() {
                       )}
                     </div>
                     <div className="flex-1 text-left">
-                      <h3 className={`font-medium text-sm ${completed.includes(index) ? "text-foreground" : "text-foreground"}`}>
+                      <h3 className={`font-medium text-sm ${completed.includes(index) ? "text-foreground line-through decoration-primary/40" : "text-foreground"}`}>
                         {exercise.name}
                       </h3>
                       <p className="text-xs text-muted-foreground">{exercise.sets} × {exercise.reps}</p>

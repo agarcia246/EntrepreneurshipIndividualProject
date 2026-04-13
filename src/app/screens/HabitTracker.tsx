@@ -2,7 +2,7 @@ import { Droplets, Moon, Beef, TrendingUp, Cookie, Dumbbell, Flame, CheckCircle,
 import { motion, AnimatePresence } from "motion/react";
 import { useHabits, useHabitLogs } from "@/lib/hooks";
 import { toast } from "sonner";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import confetti from "canvas-confetti";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -36,7 +36,6 @@ const iconColors: Record<string, string> = {
 export function HabitTracker() {
   const { habits, loading: hLoading } = useHabits();
   const { logs, loading: lLoading, toggle } = useHabitLogs();
-  const [justCompleted, setJustCompleted] = useState<string | null>(null);
   const prevRateRef = useRef(0);
 
   const loading = hLoading || lLoading;
@@ -61,8 +60,6 @@ export function HabitTracker() {
   const handleToggle = async (habitId: string, label: string) => {
     const wasCompleted = completedIds.has(habitId);
     await toggle(habitId);
-    setJustCompleted(habitId);
-    setTimeout(() => setJustCompleted(null), 600);
     if (!wasCompleted) {
       toast.success(`${label} — done!`);
     }

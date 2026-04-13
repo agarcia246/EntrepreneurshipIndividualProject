@@ -8,7 +8,6 @@ import {
   PageHeader,
   SkeletonScreen,
   Card,
-  PrimaryButton,
 } from "../components/shared";
 
 export function Settings() {
@@ -104,6 +103,9 @@ export function Settings() {
               <span className="text-sm text-foreground">Notifications</span>
             </div>
             <motion.button
+              role="switch"
+              aria-checked={!!profile?.notifications_enabled}
+              aria-label="Toggle notifications"
               onClick={toggleNotifications}
               whileTap={{ scale: 0.95 }}
               className={`w-12 h-7 rounded-full transition-colors duration-200 p-0.5 ${

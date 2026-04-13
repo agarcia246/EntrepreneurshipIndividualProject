@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Star, Check } from "lucide-react";
-import { useNavigate } from "react-router";
 import { useWeeklyCheckIn } from "@/lib/hooks";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
@@ -21,7 +20,6 @@ const focusOptions = [
 ];
 
 export function Feedback() {
-  const navigate = useNavigate();
   const { checkIn, loading, save } = useWeeklyCheckIn();
   const [rating, setRating] = useState(0);
   const [consistency, setConsistency] = useState(3);

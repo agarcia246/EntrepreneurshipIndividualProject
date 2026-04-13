@@ -1,7 +1,7 @@
 import {
   TrendingUp, TrendingDown, Dumbbell, UtensilsCrossed, CheckCircle,
   Flame, Droplets, Moon, Beef, Cookie, ArrowRight,
-  Trophy, Calendar, Target, Minus, Loader2,
+  Trophy, Calendar, Target, Minus,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useDetailedStats, useWeeklyCheckIn } from "@/lib/hooks";
