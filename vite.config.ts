@@ -18,6 +18,14 @@ function figmaAssetResolver() {
 
 export default defineConfig({
   base: process.env.VITE_BASE_PATH || '/EntrepreneurshipIndividualProject/',
+  build: {
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        poster: path.resolve(__dirname, 'poster.html'),
+      },
+    },
+  },
   plugins: [
     figmaAssetResolver(),
     react(),
